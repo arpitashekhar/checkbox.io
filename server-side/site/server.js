@@ -1,5 +1,6 @@
 require("newrelic")
 var express = require('express'),
+    	request = require('request'),
         cors = require('cors'),
 	marqdown = require('./marqdown.js'),
 	//routes = require('./routes/designer.js'),
@@ -26,14 +27,25 @@ var corsOptions = {
 
 app.options('/api/study/vote/submit/', cors(corsOptions));
 
-app.post('/api/design/survey', 
-	function(req,res)
-	{
-		console.log(req.body.markdown);
-		//var text = marqdown.render( req.query.markdown );
-		var text = marqdown.render( req.body.markdown );
-		res.send( {preview: text} );
-	}
+app.post('/api/design/survey',
+    function(req,res)
+    {
+        const options = {
+            url: 'http://a618fcdd463fe11e9a7fd0ae0afe671d-1310534138.us-east-2.elb.amazonaws.com:8080/markdown',
+            method: 'POST',
+            form: {
+                    markdown: req.body.markdown
+            }
+        }
+
+        request(options, function(err, response, body) {
+    	    if(err)
+                console.log(err);
+		
+            var text = JSON.parse(body);
+            res.send( {preview: text.preview} );
+        });
+    }
 );
 
 //app.get('/api/design/survey/all', routes.findAll );
